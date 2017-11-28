@@ -201,18 +201,18 @@ int sphere_intersection_test(Object obj, v3 ray) { // Finds where the ray inters
   if(t > 0) { return 2; } // Two intersections.
   return 0; // Return 0 just in case.
 } // END: sphere_intersection_test
-int plane_intersection_test(Object obj, v3 ray) { // Finds where the ray intersects the plane.
+int plane_intersection_test(Object obj, v3 ray) {  // Finds where the ray intersects the plane.
   // TODO: Intersetion test for a ray and plane.
   return 0;
 } // END: plane_intersection_test()
 
 v3 shoot(v3 ray, int object_count, int light_count) { // Shoots a ray in the direction of the unit vector, and returns a color vector to color a pxiel.
   v3 color;
-  v3 bkgd_color;    // Set background color.
-  bkgd_color.x = 25; // <0,0,0> for black.
+  v3 bkgd_color;      // Set background color.
+  bkgd_color.x = 25;  // <0,0,0> for black.
   bkgd_color.y = 25;
   bkgd_color.z = 100;
-  int hit = 0;      // Initialized to 0 for no intersection (miss).
+  int hit = 0;        // Initialized to 0 for no intersection (miss).
 
   Object obj = has_intersection(ray);           // Tests for any intersection, and returns the object.
   if(strcmp(obj.kind, "sphere") == 0) {         // If object is a sphere, do sphere intersection test.
@@ -220,6 +220,19 @@ v3 shoot(v3 ray, int object_count, int light_count) { // Shoots a ray in the dir
   }
   if(strcmp(obj.kind, "plane") == 0) {          // If object is a plane, do plane intersection test.
     hit = plane_intersection_test(obj, ray);    // Set hit to the return value of plane intersection test.
+  }
+
+  // Reflection and Refraction
+  if(refl == 0 && refr == 0) {  // If there is no refraction or reflection, just return the color.
+    return color;
+  }
+  if(refl > 0) {                // If there is reflection, shoot a new reflection ray.
+    v3 reflection_ray;
+    shoot(reflection_ray, object_count, light_count);
+  }
+  if(refr > 0) {                // If there is refraction, shoot a new refractionray.
+    v3 refraction_ray
+    shoot(refraction_ray, object_count, light_count);
   }
 
   if(ray.x < 0.0000000001 || ray.y < 0.0000000001) {  // Tests if there is an intersection with printf. I limited it, so it will only print a portion of the grid.
