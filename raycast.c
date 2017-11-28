@@ -206,7 +206,7 @@ int plane_intersection_test(Object obj, v3 ray) {  // Finds where the ray inters
   return 0;
 } // END: plane_intersection_test()
 
-v3 shoot(v3 ray, int object_count, int light_count) { // Shoots a ray in the direction of the unit vector, and returns a color vector to color a pxiel.
+v3 shoot(v3 start_point, v3 ray, int object_count, int light_count) { // Shoots a ray in the direction of the unit vector, and returns a color vector to color a pxiel.
   v3 color;
   v3 bkgd_color;      // Set background color.
   bkgd_color.x = 25;  // <0,0,0> for black.
@@ -228,11 +228,11 @@ v3 shoot(v3 ray, int object_count, int light_count) { // Shoots a ray in the dir
   }
   if(refl > 0) {                // If there is reflection, shoot a new reflection ray.
     v3 reflection_ray;
-    shoot(reflection_ray, object_count, light_count);
+    shoot(ray, reflection_ray, object_count, light_count);
   }
   if(refr > 0) {                // If there is refraction, shoot a new refractionray.
     v3 refraction_ray
-    shoot(refraction_ray, object_count, light_count);
+    shoot(ray, refraction_ray, object_count, light_count);
   }
 
   if(ray.x < 0.0000000001 || ray.y < 0.0000000001) {  // Tests if there is an intersection with printf. I limited it, so it will only print a portion of the grid.
@@ -288,10 +288,14 @@ Pixel* draw(int width, int height, int object_count, int light_count) { // Creat
 
   for(row = 0; row < height; row++) {
     for(col = 0; col < width; col++) {
+      v3 origin;    // Create origin point at 0,0,0.
+      origin.x = 0;
+      origin.y = 0;
+      origin.z = 0;
       ray.x = row;              // Set new ray x to the current row.
       ray.y = col;              // Set new ray y to the current column.
       ray = v3_make_unit(ray);  // Turns the ray into a unit vector.
-      color = shoot(ray, object_count, light_count);  // Shoots the ray at the scene.
+      color = shoot(origin, ray, object_count, light_count);  // Shoots the ray at the scene.
       // Colors the current pixel depending on what the ray hit when shot.
       pixmap[(width * row) + col].r = color.x;
       pixmap[(width * row) + col].g = color.y;
