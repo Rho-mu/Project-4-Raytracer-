@@ -233,16 +233,22 @@ v3 shoot(v3 start_point, v3 ray, int object_count, int light_count) { // Shoots 
   }
 
   // Reflection and Refraction
-  if(refl == 0 && refr == 0) {  // If there is no refraction or reflection, just return the color.
+  if(obj.reflectivity == 0 && obj.refractivity == 0) {  // If there is no refraction or reflection, just return the color.
     return color;
   }
-  if(refl > 0) {                // If there is reflection, shoot a new reflection ray.
-    v3 reflection_ray;
-    shoot(ray, reflection_ray, object_count, light_count);
+  if(obj.reflectivity > 0) {                // If there is reflection, shoot a new reflection ray.
+    v3 refl_ray;
+    refl_ray.x = 0;
+    refl_ray.y = 0;
+    refl_ray.z = 0;
+    shoot(ray, refl_ray, object_count, light_count);
   }
-  if(refr > 0) {                // If there is refraction, shoot a new refractionray.
-    v3 refraction_ray
-    shoot(ray, refraction_ray, object_count, light_count);
+  if(obj.refractivity > 0) {                // If there is refraction, shoot a new refractionray.
+    v3 refr_ray;
+    refr_ray.x = 0;
+    refr_ray.y = 0;
+    refr_ray.z = 0;
+    shoot(ray, refr_ray, object_count, light_count);
   }
 
   if(ray.x < 0.0000000001 || ray.y < 0.0000000001) {  // Tests if there is an intersection with printf. I limited it, so it will only print a portion of the grid.
