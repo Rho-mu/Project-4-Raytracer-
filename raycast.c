@@ -45,34 +45,34 @@ struct Pixel {
 };
 
 ///// VECTOR FUNCTIONS /////
-double v3_dot(v3 a, v3 b) {   // Takes the dot product of 2 vectors, and returns it as a double.
+double v3_dot(v3 a, v3 b) {   // Takes the dot product of 2 vectors, and returns it as a double. output = a (dot) b
   return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
 } // END: v3_dot()
-double v3_mag(v3 a) {         // Takes the maginitude of a vector, and returns it as a double.
+double v3_mag(v3 a) {         // Takes the maginitude of a vector, and returns it as a double. output = ||a||
   return sqrt((a.x * a.x) + (a.y * a.y) + (a.z * a.z));
 } // END: v3_mag()
-v3 v3_scale(v3 r, double s) { // Scales a vector by s, and returns the resulting vector.
+v3 v3_scale(v3 a, double s) { // Scales a vector by s, and returns the resulting vector. output = a * s
   v3 c;
-  c.x = r.x * s;
-  c.y = r.y * s;
-  c.z = r.z * s;
+  c.x = a.x * s;
+  c.y = a.y * s;
+  c.z = a.z * s;
   return c;
 } // END: v3_scale()
-v3 v3_sub(v3 a, v3 b) {       // Subtracts vector b from vector a, and returns the resulting vector.
+v3 v3_sub(v3 a, v3 b) {       // Subtracts vector b from vector a, and returns the resulting vector. output = a - b
   v3 c;
   c.x = a.x - b.x;
   c.y = a.y - b.y;
   c.z = a.z - b.z;
   return c;
 } // END: v3_sub()
-v3 v3_mult(v3 a, v3 b) {      // Multiplies 2 vectors, and returns the resulting vector.
+v3 v3_mult(v3 a, v3 b) {      // Multiplies 2 vectors, and returns the resulting vector. output = a * b
   v3 c;
   c.x = a.x * b.x;
   c.y = a.y * b.y;
   c.z = a.z * b.z;
   return c;
 } // END: v3_mult()
-v3 v3_make_unit(v3 a) {       // Normalizes a vector into its unit vector form, and returns that unit vector.
+v3 v3_make_unit(v3 a) {       // Normalizes a vector into its unit vector form, and returns that unit vector. output = a / ||a||
   double mag = v3_mag(a);
   v3 c;
   c.x = a.x / mag;
@@ -82,7 +82,7 @@ v3 v3_make_unit(v3 a) {       // Normalizes a vector into its unit vector form, 
 } // END: v3_make_unit()
 
 ///// OBJECT FUNCTIONS /////
-Object new_sphere(double px, double py, double pz, double cx, double cy, double cz, double radius) {                  // Creates a new sphere object.
+Object new_sphere(double px, double py, double pz, double cx, double cy, double cz, double radius, double scx, double scy, double scz, double dcx, double dcy, double dcz, double refl, double refr, double ior) {                  // Creates a new sphere object.
   Object o;
   o.position.x = px;
   o.position.y = py;
@@ -92,9 +92,19 @@ Object new_sphere(double px, double py, double pz, double cx, double cy, double 
   o.color.z = cz;
   o.radius = radius;
   o.kind = "sphere";
+
+  o.specular_color.x = scx;
+  o.specular_color.y = scy;
+  o.specular_color.z = scz;
+  o.diffuse_color.x = dcx;
+  o.diffuse_color.y = dcy;
+  o.diffuse_color.z = dcz;
+  o.reflectivity = refl;
+  o.refractivity = refr;
+  o.ior = ior;
   return o;
 } // END: new_sphere()
-Object new_plane(double px, double py, double pz, double cx, double cy, double cz, double nx, double ny, double nz) { // Creates a new plane object.
+Object new_plane(double px, double py, double pz, double cx, double cy, double cz, double nx, double ny, double nz, double scx, double scy, double scz, double dcx, double dcy, double dcz, double refl, double refr, double ior) { // Creates a new plane object.
   Object o;
   o.position.x = px;
   o.position.y = py;
@@ -106,17 +116,31 @@ Object new_plane(double px, double py, double pz, double cx, double cy, double c
   o.normal.y = ny;
   o.normal.z = nz;
   o.kind = "plane";
+
+  o.specular_color.x = scx;
+  o.specular_color.y = scy;
+  o.specular_color.z = scz;
+  o.diffuse_color.x = dcx;
+  o.diffuse_color.y = dcy;
+  o.diffuse_color.z = dcz;
+  o.reflectivity = refl;
+  o.refractivity = refr;
+  o.ior = ior;
   return o;
 } // END: new_plane()
 
 ///// LIGHT FUNCTIONS /////
-Light new_light(double px, double py, double pz, double is_on, char* kind) {  // Creates a new Light.
+Light new_light(double px, double py, double pz, double is_on, char* kind, double theta, double a0, double a1, double a2) {  // Creates a new Light.
   Light l;
   l.position.x = px;
   l.position.y = py;
   l.position.z = pz;
   l.is_on = is_on;
   l.kind = kind;
+  l.theta = theta;
+  l.radial_a0 = a0;
+  l.radial_a1 = a1;
+  l.radial_a2 = a2;
   return l;
 } // END: new_light()
 void turn_off(Light light) {  // Turns the light off.
@@ -295,6 +319,7 @@ v3 shoot(v3 start_point, v3 ray, int object_count, int light_count) { // Shoots 
   }
   return color;
 } // END: shoot()
+
 Pixel* draw(int width, int height, int object_count, int light_count) { // Creates an array of data to be displayed in an output file, and return it as a pixmap.
   int row, col; // Row and Column trackers for for-loops.
   Pixel* pixmap = malloc(sizeof(Pixel) * width * height); // Allocate memory for a pixmap with the size of any grid.
