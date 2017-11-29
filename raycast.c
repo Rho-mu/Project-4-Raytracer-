@@ -16,7 +16,12 @@ struct Object {
   v3 position;
   v3 normal;
   v3 color;
+  v3 specular_color;
+  v3 diffuse_color;
   double radius;
+  double reflectivity;
+  double refractivity;
+  double ior;
   char* kind;
 };
 Object objects[3]; // Array to store Objects. I know it's in the golbal, but I haven't found a good place for it yet.
@@ -26,6 +31,11 @@ struct Light {
   v3 position;
   int is_on;
   char* kind;
+  double theta;
+  double radial_a0;
+  double radial_a1;
+  double radial_a2;
+
 };
 Light lights[3];  // Array to store lights. I know it's in the golbal, but I haven't found a good place for it yet.
 
