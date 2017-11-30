@@ -227,12 +227,8 @@ Object has_intersection(v3 ray) { // Finds the nearest intersection (if there is
   return objects[0]; // Hard coded to return my sphere.
 } // END: has_intersection()
 int sphere_intersection_test(Object obj, v3 ray) { // Finds where the ray intersects the sphere, and returns 0, 1, or 2 depending on the number of intersections.
-  v3 vzero;   // Zero vector.
-  vzero.x = 0;
-  vzero.y = 0;
-  vzero.z = 0;
 
-  v3 neg_pos = v3_sub(vzero, obj.position); // Get the negative center of sphere for calculations.
+  v3 neg_pos = v3_scale(obj.position, -1); // Get the negative center of sphere for calculations.
   double a = v3_dot(ray, neg_pos);          // V3 ray dot -center
   double b = v3_dot(neg_pos, neg_pos);      // -center dot -center
   double t = ((a * a) - (b * b) + (obj.radius * obj.radius)); // t = [(ray dot -center)^2 - (-center dot -center)^2 +r^2]
@@ -297,17 +293,17 @@ v3 shoot(v3 ray, int object_count, int light_count, int k) { // Shoots a ray in 
 
   // Reflection and Refraction
   if(k <= 5) {  // K counts how many times shoot() is called recursively. 5 is the limit of calls.
-      if(obj.reflectivity == 0 && obj.refractivity == 0) {  // If there is no refraction or reflection, just return the color.
-    return color;
-  }
-      if(obj.reflectivity > 0) {                            // If there is reflection, shoot a new reflection ray from reflect function.
-        k = k + 1;  // Increase limit counter by 1;
-        reflect(ray, object_count, light_count, k, obj);
-      }
-      if(obj.refractivity > 0) {                            // If there is refraction, shoot a new refractionray from refract function.
-        k = k + 1;  // Increase limit counter by 1;
-        refract(ray, object_count, light_count, k, obj);
-      }
+    if(obj.reflectivity == 0 && obj.refractivity == 0) {  // If there is no refraction or reflection, just return the color.
+      return color;
+    }
+    if(obj.reflectivity > 0) {                            // If there is reflection, shoot a new reflection ray from reflect function.
+      k = k + 1;  // Increase limit counter by 1;
+      reflect(ray, object_count, light_count, k, obj);
+    }
+    if(obj.refractivity > 0) {                            // If there is refraction, shoot a new refractionray from refract function.
+      k = k + 1;  // Increase limit counter by 1;
+      refract(ray, object_count, light_count, k, obj);
+    }
   } // END: Reflect and Refract cases.
 
   if(ray.x < 0.0000000001 || ray.y < 0.0000000001) {  // Tests if there is an intersection with printf. I limited it, so it will only print a portion of the grid.
@@ -322,22 +318,17 @@ v3 shoot(v3 ray, int object_count, int light_count, int k) { // Shoots a ray in 
     double alpha = 3.14/2;
     double dl;              // Distance from ray to light.
 
-    Light light = new_light(1,1,1,1,"radial",3.14,0,0,0);        // Hard-codeed light;
-    lights[0] = light;                                           // Put light into light array.
-
-    //dl = sqrt((light.position.x - ray.x)(light.position.x - ray.x) + (light.position.y - ray.y)(light.position.y - ray.y) + (light.position.z - ray.z)(light.position.z - ray.z));
-    dl = 5; // Hard-coded dl, becasue ^this^ wasn't working.
-
     for(int i = 0; i < light_count; i++) {
+      dl = v3_dot(lights[i].position, ray);
       // Radial
       if(lights[i].kind = "radial") {
         if(dl > 99999999) { f_rad = 1.0; }                                                                           // Case 1 for radial. dl is inf.
         else { f_rad = (1 / ((dl * dl * lights[i].radial_a2) + (dl * lights[i].radial_a1)) + lights[i].radial_a0); } // Case 2 for radial. dl is not inf.
       } // END: If radial
       // Angular
-      if(lights[i].kind = "angular") {                                                    // Case 1 would be "not a spotlight."
-        if(alpha > lights[i].theta) { f_ang = 0; }                                        // Case 2 for angular if alpha is > theta.
-        if(alpha <= lights[i].theta) { f_ang = pow(v3_dot(light.position, ray), alpha); } // Case 3 for angular if alpha is <= theta.
+      if(lights[i].kind = "angular") {                                                        // Case 1 would be "not a spotlight."
+        if(alpha > lights[i].theta) { f_ang = 0; }                                            // Case 2 for angular if alpha is > theta.
+        if(alpha <= lights[i].theta) { f_ang = pow(v3_dot(lights[i].position, ray), alpha); } // Case 3 for angular if alpha is <= theta.
       } // END: If angular
     } // END: for-loop
 
@@ -424,14 +415,19 @@ int main(int argc, char* argv[]) {
     } // END: j for-loop
   } // END: i for-loop
   */
-  int object_count = read(inputFile);     // Gets the number of objects in the scene from reading the file.
-  int light_count = 1;                    // Hard-coded light count for testing.
+  int object_count = read(inputFile);                          // Gets the number of objects in the scene from reading the file.
+  Light light = new_light(1,1,1,1,"radial",3.14,0,0,0);        // Hard-codeed light;
+  lights[0] = light;                                           // Put light into light array.
+  int light_count = 1;                                         // Hard-coded light count for testing.
+
   for(int i = 0; i < object_count; i++) { // Testing loop that prints out each object and it's position vector.
     printf("Object%d - %s: <%4.2f,%4.2f,%4.2f>\n", i, objects[i].kind, objects[i].position.x,objects[i].position.y,objects[i].position.z);
   }
   for(int i = 0; i < object_count; i++) { // Testing loop that prints out each light and it's kind.
     printf("Light%d - %s\n", i, lights[i].kind);
   }
+  printf("Hit(1) or Miss(0):");
+
   Pixel* pixmap = draw(w_width, w_height, object_count, light_count); // Generates pixmap through draw() function.
   fwrite(pixmap, sizeof(Pixel), w_width * w_height, outputFile);  // Writes the pixmap data to an output file.
   fclose(inputFile);  // Closes the input file.
