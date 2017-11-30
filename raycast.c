@@ -247,7 +247,7 @@ v3 reflect(v3 ray) {
   return ray;
 }
 
-v3 shoot(v3 start_point, v3 ray, int object_count, int light_count) { // Shoots a ray in the direction of the unit vector, and returns a color vector to color a pxiel.
+v3 shoot(v3 start_point, v3 ray, int object_count, int light_count, int k) { // Shoots a ray in the direction of the unit vector, and returns a color vector to color a pxiel.
   v3 color;
   v3 bkgd_color;      // Set background color.
   bkgd_color.x = 25;  // <0,0,0> for black.
@@ -264,15 +264,19 @@ v3 shoot(v3 start_point, v3 ray, int object_count, int light_count) { // Shoots 
   }
 
   // Reflection and Refraction
-  if(obj.reflectivity == 0 && obj.refractivity == 0) {  // If there is no refraction or reflection, just return the color.
+  if(k <= 5) {  // K counts how many times shoot() is called recursively. 5 is the limit of calls.
+      if(obj.reflectivity == 0 && obj.refractivity == 0) {  // If there is no refraction or reflection, just return the color.
     return color;
   }
-  if(obj.reflectivity > 0) {                            // If there is reflection, shoot a new reflection ray from reflect function.
-    reflect(ray);
-  }
-  if(obj.refractivity > 0) {                            // If there is refraction, shoot a new refractionray from refract function.
-    refract(ray);
-  }
+      if(obj.reflectivity > 0) {                            // If there is reflection, shoot a new reflection ray from reflect function.
+        k = k + 1;  // Increase limit counter by 1;
+        reflect(ray);
+      }
+      if(obj.refractivity > 0) {                            // If there is refraction, shoot a new refractionray from refract function.
+        k = k + 1;  // Increase limit counter by 1;
+        refract(ray);
+      }
+  } // END: Reflect and Refract cases.
 
   if(ray.x < 0.0000000001 || ray.y < 0.0000000001) {  // Tests if there is an intersection with printf. I limited it, so it will only print a portion of the grid.
     if(hit > 0) { printf("1"); }
@@ -287,7 +291,7 @@ v3 shoot(v3 start_point, v3 ray, int object_count, int light_count) { // Shoots 
     double dl;              // Distance from ray to light.
 
     Light light = new_light(1,1,1,1,"radial",3.14,0,0,0);        // Hard-codeed light;
-    lights[0] = light;                                // Put light into light array.
+    lights[0] = light;                                           // Put light into light array.
 
     //dl = sqrt((light.position.x - ray.x)(light.position.x - ray.x) + (light.position.y - ray.y)(light.position.y - ray.y) + (light.position.z - ray.z)(light.position.z - ray.z));
     dl = 5; // Hard-coded dl, becasue ^this^ wasn't working.
@@ -333,7 +337,7 @@ Pixel* draw(int width, int height, int object_count, int light_count) { // Creat
       ray.x = row;              // Set new ray x to the current row.
       ray.y = col;              // Set new ray y to the current column.
       ray = v3_make_unit(ray);  // Turns the ray into a unit vector.
-      color = shoot(origin, ray, object_count, light_count);  // Shoots the ray at the scene.
+      color = shoot(origin, ray, object_count, light_count, 0);  // Shoots the ray at the scene.
       // Colors the current pixel depending on what the ray hit when shot.
       pixmap[(width * row) + col].r = color.x;
       pixmap[(width * row) + col].g = color.y;
