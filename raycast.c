@@ -267,10 +267,10 @@ v3 shoot(v3 start_point, v3 ray, int object_count, int light_count) { // Shoots 
   if(obj.reflectivity == 0 && obj.refractivity == 0) {  // If there is no refraction or reflection, just return the color.
     return color;
   }
-  if(obj.reflectivity > 0) {                // If there is reflection, shoot a new reflection ray from reflect function.
+  if(obj.reflectivity > 0) {                            // If there is reflection, shoot a new reflection ray from reflect function.
     reflect(ray);
   }
-  if(obj.refractivity > 0) {                // If there is refraction, shoot a new refractionray from refract function.
+  if(obj.refractivity > 0) {                            // If there is refraction, shoot a new refractionray from refract function.
     refract(ray);
   }
 
@@ -282,10 +282,8 @@ v3 shoot(v3 start_point, v3 ray, int object_count, int light_count) { // Shoots 
   if(hit > 0) { // Set color to the color of the object of intersection.
     double f_rad;           // Radial attenuation.
     double f_ang;           // Angular attenuation.
-    double a2,a1,a0;
     double ns;
     double alpha = 3.14/2;
-    double theta = 3.14;
     double dl;              // Distance from ray to light.
 
     Light light = new_light(1,1,1,1,"radial",3.14,0,0,0);        // Hard-codeed light;
@@ -297,13 +295,13 @@ v3 shoot(v3 start_point, v3 ray, int object_count, int light_count) { // Shoots 
     for(int i = 0; i < light_count; i++) {
       // Radial
       if(lights[i].kind = "radial") {
-        if(dl > 99999999) { f_rad = 1.0; }                        // Case 1 for radial. dl is inf.
-        else { f_rad = (1 / ((dl * dl * a2) + (dl * a1)) + a0); } // Case 2 for radial. dl is not inf.
+        if(dl > 99999999) { f_rad = 1.0; }                                                                           // Case 1 for radial. dl is inf.
+        else { f_rad = (1 / ((dl * dl * lights[i].radial_a2) + (dl * lights[i].radial_a1)) + lights[i].radial_a0); } // Case 2 for radial. dl is not inf.
       } // END: If radial
       // Angular
-      if(lights[i].kind = "angular") {                                          // Case 1 would be "not a spotlight."
-        if(alpha > theta) { f_ang = 0; }                                        // Case 2 for angular if alpha is > theta.
-        if(alpha <= theta) { f_ang = pow(v3_dot(light.position, ray), alpha); } // Case 3 for angular if alpha is <= theta.
+      if(lights[i].kind = "angular") {                                                    // Case 1 would be "not a spotlight."
+        if(alpha > lights[i].theta) { f_ang = 0; }                                        // Case 2 for angular if alpha is > theta.
+        if(alpha <= lights[i].theta) { f_ang = pow(v3_dot(light.position, ray), alpha); } // Case 3 for angular if alpha is <= theta.
       } // END: If angular
     } // END: for-loop
 
