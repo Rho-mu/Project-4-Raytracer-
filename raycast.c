@@ -65,6 +65,13 @@ v3 v3_sub(v3 a, v3 b) {       // Subtracts vector b from vector a, and returns t
   c.z = a.z - b.z;
   return c;
 } // END: v3_sub()
+v3 v3_add(v3 a, v3 b) {       // Adds vector a and vector b, and returns the resulting vector. output = a + b
+  v3 c;
+  c.x = a.x + b.x;
+  c.y = a.y + b.y;
+  c.z = a.z + b.z;
+  return c;
+} // END: v3_add()
 v3 v3_mult(v3 a, v3 b) {      // Multiplies 2 vectors, and returns the resulting vector. output = a * b
   v3 c;
   c.x = a.x * b.x;
@@ -264,11 +271,10 @@ void reflect(v3 ray, int object_count, int light_count, int k, Object obj) {
   v3 refl_ray;
   v3 n = obj.normal;
 
-  v3 a = v3_dot(ray, n);  // Calcualtes ray dot n for final equation.
-  v3 b = v3_scale(a , 2); // Calculates 2(ray dot n) for final equaiton.
-  v3 c = v3_mult(a , b);  // Calcualtes 2(ray dot n)*n for final equation.
+  double ray_dot_n = v3_dot(ray, n);                 // Calcualtes (ray dot n) for final equation.
+  v3 scaled_ray_dot_n = v3_scale(n, (2* ray_dot_n)); // Calculates 2(ray dot n)*n for final equation.
 
-  refl_ray = v3_sub(ray, c) // Final equation. Based on Um = Ur - 2(Ur dot n)*n.
+  refl_ray = v3_sub(ray, scaled_ray_dot_n);          // Final equation. Based on Um = Ur - 2(Ur dot n)*n.
   //shoot(refr_ray, object_count, light_count, k);
 } // END: refract()
 
