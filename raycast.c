@@ -240,14 +240,34 @@ int plane_intersection_test(Object obj, v3 ray) {  // Finds where the ray inters
   return 0;
 } // END: plane_intersection_test()
 
-v3 refract(v3 ray) {
-  return ray;
+void refract(v3 ray, int object_count, int light_count, int k, Object obj) {
+  v3 refl_ray;
+  v3 n = obj.normal;
+  v3 b;
+  double pr = 0;       // IOR of external region.
+  double pt = obj.ior; // IOR of internal region.
+  double sin_phi;
+  double cos_phi;
+
+  sin_phi = v3_dot(ray, b) * (pr / pt);
+  cos_phi = sqrt(1 - (sin_phi * sin_phi));
+
+  v3 minus_n = v3_scale(n, -1);
+  v3 minus_n_x_cos_phi =  v3_scale(minus_n, cos_phi);
+  v3 b_x_sin_phi = v3_scale(b, sin_phi);
+
+  refl_ray = v3_add(minus_n_x_cos_phi, b_x_sin_phi);
+
+  //shoot(refl_ray, object_count, light_count, k);
 }
-v3 reflect(v3 ray) {
-  return ray;
+void reflect(v3 ray, int object_count, int light_count, int k, Object obj) {
+  v3 refr_ray;
+
+
+  //shoot(refr_ray, object_count, light_count, k);
 }
 
-v3 shoot(v3 start_point, v3 ray, int object_count, int light_count, int k) { // Shoots a ray in the direction of the unit vector, and returns a color vector to color a pxiel.
+v3 shoot(v3 ray, int object_count, int light_count, int k) { // Shoots a ray in the direction of the unit vector, and returns a color vector to color a pxiel.
   v3 color;
   v3 bkgd_color;      // Set background color.
   bkgd_color.x = 25;  // <0,0,0> for black.
@@ -270,11 +290,11 @@ v3 shoot(v3 start_point, v3 ray, int object_count, int light_count, int k) { // 
   }
       if(obj.reflectivity > 0) {                            // If there is reflection, shoot a new reflection ray from reflect function.
         k = k + 1;  // Increase limit counter by 1;
-        reflect(ray);
+        reflect(ray, object_count, light_count, k, obj);
       }
       if(obj.refractivity > 0) {                            // If there is refraction, shoot a new refractionray from refract function.
         k = k + 1;  // Increase limit counter by 1;
-        refract(ray);
+        refract(ray, object_count, light_count, k, obj);
       }
   } // END: Reflect and Refract cases.
 
@@ -330,14 +350,10 @@ Pixel* draw(int width, int height, int object_count, int light_count) { // Creat
 
   for(row = 0; row < height; row++) {
     for(col = 0; col < width; col++) {
-      v3 origin;    // Create origin point at 0,0,0.
-      origin.x = 0;
-      origin.y = 0;
-      origin.z = 0;
       ray.x = row;              // Set new ray x to the current row.
       ray.y = col;              // Set new ray y to the current column.
       ray = v3_make_unit(ray);  // Turns the ray into a unit vector.
-      color = shoot(origin, ray, object_count, light_count, 0);  // Shoots the ray at the scene.
+      color = shoot(ray, object_count, light_count, 0);  // Shoots the ray at the scene.
       // Colors the current pixel depending on what the ray hit when shot.
       pixmap[(width * row) + col].r = color.x;
       pixmap[(width * row) + col].g = color.y;
