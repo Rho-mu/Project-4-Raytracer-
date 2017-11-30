@@ -241,7 +241,7 @@ int plane_intersection_test(Object obj, v3 ray) {  // Finds where the ray inters
 } // END: plane_intersection_test()
 
 void refract(v3 ray, int object_count, int light_count, int k, Object obj) {
-  v3 refl_ray;
+  v3 refr_ray;
   v3 n = obj.normal;
   v3 b;
   double pr = 0;       // IOR of external region.
@@ -249,23 +249,28 @@ void refract(v3 ray, int object_count, int light_count, int k, Object obj) {
   double sin_phi;
   double cos_phi;
 
-  sin_phi = v3_dot(ray, b) * (pr / pt);
-  cos_phi = sqrt(1 - (sin_phi * sin_phi));
+  sin_phi = v3_dot(ray, b) * (pr / pt);     // Calculates sin(phi).
+  cos_phi = sqrt(1 - (sin_phi * sin_phi));  // Calculates cos(phi).
 
-  v3 minus_n = v3_scale(n, -1);
-  v3 minus_n_x_cos_phi =  v3_scale(minus_n, cos_phi);
-  v3 b_x_sin_phi = v3_scale(b, sin_phi);
+  v3 minus_n = v3_scale(n, -1);                       // Makes n negative for final equation.
+  v3 minus_n_x_cos_phi =  v3_scale(minus_n, cos_phi); // Calculates (-n)(cos_phi) for final equation.
+  v3 b_x_sin_phi = v3_scale(b, sin_phi);              // Calculates (b)(sin_phi) for final equation.
 
-  refl_ray = v3_add(minus_n_x_cos_phi, b_x_sin_phi);
+  refr_ray = v3_add(minus_n_x_cos_phi, b_x_sin_phi);  // Final equation. Based on Ut = (-n)(cos_phi) + (b)(sin_phi).
 
   //shoot(refl_ray, object_count, light_count, k);
-}
+} // END: refract()
 void reflect(v3 ray, int object_count, int light_count, int k, Object obj) {
-  v3 refr_ray;
+  v3 refl_ray;
+  v3 n = obj.normal;
 
+  v3 a = v3_dot(ray, n);  // Calcualtes ray dot n for final equation.
+  v3 b = v3_scale(a , 2); // Calculates 2(ray dot n) for final equaiton.
+  v3 c = v3_mult(a , b);  // Calcualtes 2(ray dot n)*n for final equation.
 
+  refl_ray = v3_sub(ray, c) // Final equation. Based on Um = Ur - 2(Ur dot n)*n.
   //shoot(refr_ray, object_count, light_count, k);
-}
+} // END: refract()
 
 v3 shoot(v3 ray, int object_count, int light_count, int k) { // Shoots a ray in the direction of the unit vector, and returns a color vector to color a pxiel.
   v3 color;
@@ -275,11 +280,12 @@ v3 shoot(v3 ray, int object_count, int light_count, int k) { // Shoots a ray in 
   bkgd_color.z = 100;
   int hit = 0;        // Initialized to 0 for no intersection (miss).
 
-  Object obj = has_intersection(ray);           // Tests for any intersection, and returns the object.
-  if(strcmp(obj.kind, "sphere") == 0) {         // If object is a sphere, do sphere intersection test.
+  Object obj = has_intersection(ray);         // Tests for any intersection, and returns the object.
+  if(strcmp(obj.kind, "sphere") == 0) {       // If object is a sphere, do sphere intersection test.
     hit = sphere_intersection_test(obj, ray);   // Set hit to the return value of sphere intersection test.
+    obj.normal = v3_sub(ray, obj.position);     // Set normal of sphere to intersection - center.
   }
-  if(strcmp(obj.kind, "plane") == 0) {          // If object is a plane, do plane intersection test.
+  if(strcmp(obj.kind, "plane") == 0) {        // If object is a plane, do plane intersection test.
     hit = plane_intersection_test(obj, ray);    // Set hit to the return value of plane intersection test.
   }
 
