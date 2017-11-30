@@ -201,12 +201,12 @@ int read(FILE* file) { // Reads the input file for data on the scene, and return
     char* str = "sphere";
     // If the read data is for a sphere...
     if(strcmp(str, "sphere") == 0) {
-      Object obj = new_sphere(2,2,0,0,255,255,2);     // Create new sphere object.
+      Object obj = new_sphere(2,2,0,0,255,255,2,1,0,0,1,1,1,0.2,0.3,1.33);     // Create new sphere object.
       objects[i] = obj;
     } // END: If sphere
     // If the read data is for a plane...
     if(strcmp(str, "plane") == 0) {
-      Object obj = new_plane(1,2,3,255,0,255,1,2,3);  // Create new plane object.
+      Object obj = new_plane(1,2,3,255,0,255,1,2,3,0,1,0,1,1,1,0,0,0);  // Create new plane object.
     } // END: If plane
   } // END: for-loop
   return object_count;
@@ -240,6 +240,13 @@ int plane_intersection_test(Object obj, v3 ray) {  // Finds where the ray inters
   return 0;
 } // END: plane_intersection_test()
 
+v3 refract(v3 ray) {
+  return ray;
+}
+v3 reflect(v3 ray) {
+  return ray;
+}
+
 v3 shoot(v3 start_point, v3 ray, int object_count, int light_count) { // Shoots a ray in the direction of the unit vector, and returns a color vector to color a pxiel.
   v3 color;
   v3 bkgd_color;      // Set background color.
@@ -260,19 +267,11 @@ v3 shoot(v3 start_point, v3 ray, int object_count, int light_count) { // Shoots 
   if(obj.reflectivity == 0 && obj.refractivity == 0) {  // If there is no refraction or reflection, just return the color.
     return color;
   }
-  if(obj.reflectivity > 0) {                // If there is reflection, shoot a new reflection ray.
-    v3 refl_ray;
-    refl_ray.x = 0;
-    refl_ray.y = 0;
-    refl_ray.z = 0;
-    shoot(ray, refl_ray, object_count, light_count);
+  if(obj.reflectivity > 0) {                // If there is reflection, shoot a new reflection ray from reflect function.
+    reflect(ray);
   }
-  if(obj.refractivity > 0) {                // If there is refraction, shoot a new refractionray.
-    v3 refr_ray;
-    refr_ray.x = 0;
-    refr_ray.y = 0;
-    refr_ray.z = 0;
-    shoot(ray, refr_ray, object_count, light_count);
+  if(obj.refractivity > 0) {                // If there is refraction, shoot a new refractionray from refract function.
+    refract(ray);
   }
 
   if(ray.x < 0.0000000001 || ray.y < 0.0000000001) {  // Tests if there is an intersection with printf. I limited it, so it will only print a portion of the grid.
@@ -289,7 +288,7 @@ v3 shoot(v3 start_point, v3 ray, int object_count, int light_count) { // Shoots 
     double theta = 3.14;
     double dl;              // Distance from ray to light.
 
-    Light light = new_light(1,1,1,1,"radial");        // Hard-codeed light;
+    Light light = new_light(1,1,1,1,"radial",3.14,0,0,0);        // Hard-codeed light;
     lights[0] = light;                                // Put light into light array.
 
     //dl = sqrt((light.position.x - ray.x)(light.position.x - ray.x) + (light.position.y - ray.y)(light.position.y - ray.y) + (light.position.z - ray.z)(light.position.z - ray.z));
@@ -399,6 +398,9 @@ int main(int argc, char* argv[]) {
   int light_count = 1;                    // Hard-coded light count for testing.
   for(int i = 0; i < object_count; i++) { // Testing loop that prints out each object and it's position vector.
     printf("Object%d - %s: <%4.2f,%4.2f,%4.2f>\n", i, objects[i].kind, objects[i].position.x,objects[i].position.y,objects[i].position.z);
+  }
+  for(int i = 0; i < object_count; i++) { // Testing loop that prints out each light and it's kind.
+    printf("Light%d - %s\n", i, lights[i].kind);
   }
   Pixel* pixmap = draw(w_width, w_height, object_count, light_count); // Generates pixmap through draw() function.
   fwrite(pixmap, sizeof(Pixel), w_width * w_height, outputFile);  // Writes the pixmap data to an output file.
