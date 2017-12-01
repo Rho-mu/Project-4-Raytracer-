@@ -243,11 +243,6 @@ int plane_intersection_test(Object obj, v3 ray) {  // Finds where the ray inters
   return 0;
 } // END: plane_intersection_test()
 
-void refract(v3 ray, int object_count, int light_count, int k, Object obj) {
-} // END: refract()
-void reflect(v3 ray, int object_count, int light_count, int k, Object obj) {
-} // END: refract()
-
 v3 shoot(v3 ray, int object_count, int light_count, int k) { // Shoots a ray in the direction of the unit vector, and returns a color vector to color a pxiel.
   printf("%d\n", k);
   v3 color;
