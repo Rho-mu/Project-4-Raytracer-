@@ -244,37 +244,12 @@ int plane_intersection_test(Object obj, v3 ray) {  // Finds where the ray inters
 } // END: plane_intersection_test()
 
 void refract(v3 ray, int object_count, int light_count, int k, Object obj) {
-  v3 refr_ray;
-  v3 n = obj.normal;
-  v3 b;
-  double pr = 0;       // IOR of external region.
-  double pt = obj.ior; // IOR of internal region.
-  double sin_phi;
-  double cos_phi;
-
-  sin_phi = v3_dot(ray, b) * (pr / pt);     // Calculates sin(phi).
-  cos_phi = sqrt(1 - (sin_phi * sin_phi));  // Calculates cos(phi).
-
-  v3 minus_n = v3_scale(n, -1);                       // Makes n negative for final equation.
-  v3 minus_n_x_cos_phi =  v3_scale(minus_n, cos_phi); // Calculates (-n)(cos_phi) for final equation.
-  v3 b_x_sin_phi = v3_scale(b, sin_phi);              // Calculates (b)(sin_phi) for final equation.
-
-  refr_ray = v3_add(minus_n_x_cos_phi, b_x_sin_phi);  // Final equation. Based on Ut = (-n)(cos_phi) + (b)(sin_phi).
-
-  //shoot(refl_ray, object_count, light_count, k);
 } // END: refract()
 void reflect(v3 ray, int object_count, int light_count, int k, Object obj) {
-  v3 refl_ray;
-  v3 n = obj.normal;
-
-  double ray_dot_n = v3_dot(ray, n);                 // Calcualtes (ray dot n) for final equation.
-  v3 scaled_ray_dot_n = v3_scale(n, (2* ray_dot_n)); // Calculates 2(ray dot n)*n for final equation.
-
-  refl_ray = v3_sub(ray, scaled_ray_dot_n);          // Final equation. Based on Um = Ur - 2(Ur dot n)*n.
-  //shoot(refr_ray, object_count, light_count, k);
 } // END: refract()
 
 v3 shoot(v3 ray, int object_count, int light_count, int k) { // Shoots a ray in the direction of the unit vector, and returns a color vector to color a pxiel.
+  printf("%d\n", k);
   v3 color;
   v3 bkgd_color;      // Set background color.
   bkgd_color.x = 25;  // <0,0,0> for black.
@@ -296,13 +271,36 @@ v3 shoot(v3 ray, int object_count, int light_count, int k) { // Shoots a ray in 
     if(obj.reflectivity == 0 && obj.refractivity == 0) {  // If there is no refraction or reflection, just return the color.
       return color;
     }
-    if(obj.reflectivity > 0) {                            // If there is reflection, shoot a new reflection ray from reflect function.
+    if(obj.refractivity > 0) {                            // If there is refractivity, shoot a new refraction ray from reflect function.
       k = k + 1;  // Increase limit counter by 1;
-      reflect(ray, object_count, light_count, k, obj);
+      v3 refr_ray;
+      v3 n = obj.normal;
+      v3 b;
+      double pr = 0;       // IOR of external region.
+      double pt = obj.ior; // IOR of internal region.
+      double sin_phi;
+      double cos_phi;
+
+      sin_phi = v3_dot(ray, b) * (pr / pt);     // Calculates sin(phi).
+      cos_phi = sqrt(1 - (sin_phi * sin_phi));  // Calculates cos(phi).
+
+      v3 minus_n = v3_scale(n, -1);                       // Makes n negative for final equation.
+      v3 minus_n_x_cos_phi =  v3_scale(minus_n, cos_phi); // Calculates (-n)(cos_phi) for final equation.
+      v3 b_x_sin_phi = v3_scale(b, sin_phi);              // Calculates (b)(sin_phi) for final equation.
+
+      refr_ray = v3_add(minus_n_x_cos_phi, b_x_sin_phi);  // Final equation. Based on Ut = (-n)(cos_phi) + (b)(sin_phi).
+      shoot(refr_ray, object_count, light_count, k);      // Recursively call shoot() with new ray.
     }
-    if(obj.refractivity > 0) {                            // If there is refraction, shoot a new refractionray from refract function.
+    if(obj.reflectivity > 0) {                            // If there is reflectivity, shoot a new reflection from refract function.
       k = k + 1;  // Increase limit counter by 1;
-      refract(ray, object_count, light_count, k, obj);
+      v3 refl_ray;
+      v3 n = obj.normal;
+
+      double ray_dot_n = v3_dot(ray, n);                  // Calcualtes (ray dot n) for final equation.
+      v3 scaled_ray_dot_n = v3_scale(n, (2* ray_dot_n));  // Calculates 2(ray dot n)*n for final equation.
+
+      refl_ray = v3_sub(ray, scaled_ray_dot_n);           // Final equation. Based on Um = Ur - 2(Ur dot n)*n.
+      shoot(refl_ray, object_count, light_count, k);      // Recursively call shoot() with new ray.
     }
   } // END: Reflect and Refract cases.
 
