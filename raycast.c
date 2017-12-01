@@ -244,7 +244,7 @@ int plane_intersection_test(Object obj, v3 ray) {  // Finds where the ray inters
 } // END: plane_intersection_test()
 
 v3 shoot(v3 ray, int object_count, int light_count, int k) { // Shoots a ray in the direction of the unit vector, and returns a color vector to color a pxiel.
-  printf("%d\n", k);
+
   v3 color;
   v3 bkgd_color;      // Set background color.
   bkgd_color.x = 25;  // <0,0,0> for black.
@@ -261,79 +261,84 @@ v3 shoot(v3 ray, int object_count, int light_count, int k) { // Shoots a ray in 
     hit = plane_intersection_test(obj, ray);    // Set hit to the return value of plane intersection test.
   }
 
-  // Reflection and Refraction
-  if(k <= 5) {  // K counts how many times shoot() is called recursively. 5 is the limit of calls.
-    if(obj.reflectivity == 0 && obj.refractivity == 0) {  // If there is no refraction or reflection, just return the color.
-      return color;
-    }
-    if(obj.refractivity > 0) {                            // If there is refractivity, shoot a new refraction ray from reflect function.
-      k = k + 1;  // Increase limit counter by 1;
-      v3 refr_ray;
-      v3 n = obj.normal;
-      v3 b;
-      double pr = 0;       // IOR of external region.
-      double pt = obj.ior; // IOR of internal region.
-      double sin_phi;
-      double cos_phi;
-
-      sin_phi = v3_dot(ray, b) * (pr / pt);     // Calculates sin(phi).
-      cos_phi = sqrt(1 - (sin_phi * sin_phi));  // Calculates cos(phi).
-
-      v3 minus_n = v3_scale(n, -1);                       // Makes n negative for final equation.
-      v3 minus_n_x_cos_phi =  v3_scale(minus_n, cos_phi); // Calculates (-n)(cos_phi) for final equation.
-      v3 b_x_sin_phi = v3_scale(b, sin_phi);              // Calculates (b)(sin_phi) for final equation.
-
-      refr_ray = v3_add(minus_n_x_cos_phi, b_x_sin_phi);  // Final equation. Based on Ut = (-n)(cos_phi) + (b)(sin_phi).
-      shoot(refr_ray, object_count, light_count, k);      // Recursively call shoot() with new ray.
-    }
-    if(obj.reflectivity > 0) {                            // If there is reflectivity, shoot a new reflection from refract function.
-      k = k + 1;  // Increase limit counter by 1;
-      v3 refl_ray;
-      v3 n = obj.normal;
-
-      double ray_dot_n = v3_dot(ray, n);                  // Calcualtes (ray dot n) for final equation.
-      v3 scaled_ray_dot_n = v3_scale(n, (2* ray_dot_n));  // Calculates 2(ray dot n)*n for final equation.
-
-      refl_ray = v3_sub(ray, scaled_ray_dot_n);           // Final equation. Based on Um = Ur - 2(Ur dot n)*n.
-      shoot(refl_ray, object_count, light_count, k);      // Recursively call shoot() with new ray.
-    }
-  } // END: Reflect and Refract cases.
-
-  if(ray.x < 0.0000000001 || ray.y < 0.0000000001) {  // Tests if there is an intersection with printf. I limited it, so it will only print a portion of the grid.
-    if(hit > 0) { printf("1"); }
-    if(hit <= 0) { printf("0"); }
-  }
-
   if(hit > 0) { // Set color to the color of the object of intersection.
-    double f_rad;           // Radial attenuation.
-    double f_ang;           // Angular attenuation.
-    double ns;
-    double alpha = 3.14/2;
-    double dl;              // Distance from ray to light.
+    // Reflection and Refraction
+    if(k < 5) {  // K counts how many times shoot() is called recursively. 6 is the limit of calls.
+      if(obj.reflectivity == 0 && obj.refractivity == 0) {  // If there is no refraction or reflection, just return the color.
+        return color;
+      }
+      if(obj.refractivity > 0) {                            // If there is refractivity, shoot a new refraction ray from reflect function.
+        k = k + 1;  // Increase limit counter by 1;
+        v3 refr_ray;
+        v3 n = obj.normal;
+        v3 b;
+        double pr = 0;       // IOR of external region.
+        double pt = obj.ior; // IOR of internal region.
+        double sin_phi;
+        double cos_phi;
 
-    for(int i = 0; i < light_count; i++) {
-      dl = v3_dot(lights[i].position, ray);
-      // Radial
-      if(lights[i].kind = "radial") {
-        if(dl > 99999999) { f_rad = 1.0; }                                                                           // Case 1 for radial. dl is inf.
-        else { f_rad = (1 / ((dl * dl * lights[i].radial_a2) + (dl * lights[i].radial_a1)) + lights[i].radial_a0); } // Case 2 for radial. dl is not inf.
-      } // END: If radial
-      // Angular
-      if(lights[i].kind = "angular") {                                                        // Case 1 would be "not a spotlight."
-        if(alpha > lights[i].theta) { f_ang = 0; }                                            // Case 2 for angular if alpha is > theta.
-        if(alpha <= lights[i].theta) { f_ang = pow(v3_dot(lights[i].position, ray), alpha); } // Case 3 for angular if alpha is <= theta.
-      } // END: If angular
-    } // END: for-loop
+        sin_phi = v3_dot(ray, b) * (pr / pt);     // Calculates sin(phi).
+        cos_phi = sqrt(1 - (sin_phi * sin_phi));  // Calculates cos(phi).
 
-    color.x = obj.color.x;
-    color.y = obj.color.y;
-    color.z = obj.color.z;
+        v3 minus_n = v3_scale(n, -1);                       // Makes n negative for final equation.
+        v3 minus_n_x_cos_phi =  v3_scale(minus_n, cos_phi); // Calculates (-n)(cos_phi) for final equation.
+        v3 b_x_sin_phi = v3_scale(b, sin_phi);              // Calculates (b)(sin_phi) for final equation.
+
+        refr_ray = v3_add(minus_n_x_cos_phi, b_x_sin_phi);  // Final equation. Based on Ut = (-n)(cos_phi) + (b)(sin_phi).
+        shoot(refr_ray, object_count, light_count, k);      // Recursively call shoot() with new ray.
+      }
+      if(obj.reflectivity > 0) {                            // If there is reflectivity, shoot a new reflection from refract function.
+        k = k + 1;  // Increase limit counter by 1;
+        v3 refl_ray;
+        v3 n = obj.normal;
+
+        double ray_dot_n = v3_dot(ray, n);                  // Calcualtes (ray dot n) for final equation.
+        v3 scaled_ray_dot_n = v3_scale(n, (2* ray_dot_n));  // Calculates 2(ray dot n)*n for final equation.
+
+        refl_ray = v3_sub(ray, scaled_ray_dot_n);           // Final equation. Based on Um = Ur - 2(Ur dot n)*n.
+        shoot(refl_ray, object_count, light_count, k);      // Recursively call shoot() with new ray.
+      }
+    } // END: Reflect and Refract cases.
+    else {       // If k >= 5.
+
+      double f_rad;           // Radial attenuation.
+      double f_ang;           // Angular attenuation.
+      double ns;
+      double alpha = 3.14/2;
+      double dl;              // Distance from ray to light.
+
+      for(int i = 0; i < light_count; i++) {
+        dl = v3_dot(lights[i].position, ray);
+        // Radial
+        if(lights[i].kind = "radial") {
+          if(dl > 99999999) { f_rad = 1.0; }                                                                           // Case 1 for radial. dl is inf.
+          else { f_rad = (1 / ((dl * dl * lights[i].radial_a2) + (dl * lights[i].radial_a1)) + lights[i].radial_a0); } // Case 2 for radial. dl is not inf.
+        } // END: If radial
+        // Angular
+        if(lights[i].kind = "angular") {                                                        // Case 1 would be "not a spotlight."
+          if(alpha > lights[i].theta) { f_ang = 0; }                                            // Case 2 for angular if alpha is > theta.
+          if(alpha <= lights[i].theta) { f_ang = pow(v3_dot(lights[i].position, ray), alpha); } // Case 3 for angular if alpha is <= theta.
+        } // END: If angular
+      } // END: for-loop
+
+      color.x = obj.color.x;
+      color.y = obj.color.y;
+      color.z = obj.color.z;
+    } // END: else if k >= 5
   } // END: if hit
   else {        // Set color to background color if no intersection is made.
     color.x = bkgd_color.x;
     color.y = bkgd_color.y;
     color.z = bkgd_color.z;
-  }
+    return color;
+  } // END: else
+
+  /* --Testing print statements--
+  if(ray.x < 0.0000000001 || ray.y < 0.0000000001) {  // Tests if there is an intersection with printf. I limited it, so it will only print a portion of the grid.
+    if(hit > 0) { printf("1"); }
+    if(hit <= 0) { printf("0"); }
+  }*/
+
   return color;
 } // END: shoot()
 
