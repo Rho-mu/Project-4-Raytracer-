@@ -6,6 +6,7 @@ and refraction.
 
 # Usage
 takes 4 arguments:
+
 1: The width of the scene greater than 0
 
 2: The Height of the scene greater than 0
