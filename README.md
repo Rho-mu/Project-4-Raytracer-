@@ -7,8 +7,11 @@ and refraction.
 # Usage
 takes 4 arguments:
 1: The width of the scene greater than 0
-2: the Height of the scene greater than 0
+
+2: The Height of the scene greater than 0
+
 3: The input file (Doesn't change anything)
+
 4: The output file (I've been using .data instead of .ppm, because I haven't
                     been able to write to ppm)
 
@@ -20,7 +23,7 @@ This program does not work!!
 I haven't fixed most of the problems I was having before. Refer to Known Errors for Project 3.
 I feel like I implemented refraction and reflection correctly. I understood all of the math and how to put it into code.
 I also understood the recursion and think I implemented that correctly. Basically, I'm pretty sure that I did
-everything new for this project except new parsing. I added new variables for parsing, but ended up hard-coding them.
+everything new for this project except the new parsing. I added new variables for parsing, but ended up hard-coding them.
 Also, I was able to at least get an output.data file that was colored completely with the background color, but I must've
 done something toward the end of the project that screwed it up, because I haven't gotten that result since.
 
