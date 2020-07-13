@@ -5,7 +5,7 @@ with lights to create lighting and shadows on the objects, and reflection
 and refraction.
 
 # Usage
-takes 4 arguments:
+Takes 4 arguments:
 
 1: The width of the scene greater than 0
 
